@@ -160,8 +160,6 @@
 
 (def-builder-translation Retrier #{::backoff-rate ::error-equals ::interval-seconds ::max-attempts})
 
-(def-builder-translation Iterator #{::start-at ::comment ::state})
-
 (def-builder-translation NextStateTransition #{::next-state-name ::terminal?} ::terminal?)
 
 (def-builder-translation EndTransition #{::terminal?} ::terminal?)
@@ -356,9 +354,18 @@
 
 (declare states->bean-map)
 
-(defmethod bd/builder-override [Iterator ::state] [_ ^Iterator$Builder builder states]
+;; (defmethod bd/builder-override [Branch ::states] [_ ^Branch$Builder builder states]
+;;   (doseq [[name state] (states->bean-map states)]
+;;     (.state builder name state)))
+
+;; (def-builder-translation Branch #{::comment ::start-at ::states})
+
+(defmethod bd/builder-override [Iterator ::states] [_ ^Iterator$Builder builder states]
   (doseq [[name state] (states->bean-map states)]
     (.state builder name state)))
+
+(def-builder-translation Iterator #{::start-at ::comment ::states})
+
 
 (defmethod bd/builder-override [MapState ::iterator] [_ ^MapState$Builder builder iterator]
   (.iterator builder (map->Iterator$Builder iterator)))
