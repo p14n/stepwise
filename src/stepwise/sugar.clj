@@ -265,7 +265,8 @@
     ::mdl/choices
     ::mdl/states
     ::mdl/resource
-    ::mdl/cause})
+    ::mdl/cause
+    ::mdl/iterator})
 
 (def bare-pass-through-keys
   (into #{}

@@ -12,6 +12,7 @@
 (s/def ::mdl/result-selector ::json-path)
 (s/def ::mdl/result-path ::json-path)
 (s/def ::mdl/output-path ::json-path)
+(s/def ::mdl/iterator ::json-path)
 
 (s/def ::mdl/seconds-path ::json-path)
 (s/def ::mdl/timestamp-path ::json-path)

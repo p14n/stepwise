@@ -53,8 +53,9 @@
            (com.amazonaws.services.stepfunctions.builder.states ChoiceState FailState ParallelState
                                                                 PassState SucceedState TaskState
                                                                 WaitState Choice EndTransition
+                                                                MapState
                                                                 NextStateTransition Branch Catcher
-                                                                Retrier WaitForSeconds
+                                                                Retrier Iterator WaitForSeconds
                                                                 WaitForTimestampPath
                                                                 WaitForSecondsPath
                                                                 WaitForTimestamp$Builder
@@ -63,6 +64,7 @@
                                                                 Transition$Builder
                                                                 TaskState$Builder
                                                                 Catcher$Builder Retrier$Builder
+                                                                Iterator$Builder
                                                                 ChoiceState$Builder
                                                                 PassState$Builder
                                                                 WaitState$Builder
@@ -74,7 +76,8 @@
                                                                 EndTransition$Builder
                                                                 Choice$Builder
                                                                 FailState$Builder
-                                                                SucceedState$Builder)
+                                                                SucceedState$Builder
+                                                                MapState$Builder)
            (com.amazonaws.services.stepfunctions.builder.conditions AndCondition
                                                                     BooleanEqualsCondition
                                                                     NotCondition
@@ -143,6 +146,9 @@
 (defmethod bd/builder-override [Retrier ::error-equals] [_ ^Retrier$Builder builder error-equals]
   (.errorEquals builder (into-array String (map name error-equals))))
 
+;; (defmethod bd/builder-override [Iterator ::error-equals] [_ ^Iterator$Builder builder error-equals]
+;;   (.errorEquals builder (into-array String (map name error-equals))))
+
 (defmethod bd/->bean-val ::backoff-rate [_ backoff-rate]
   (double backoff-rate))
 
@@ -153,6 +159,8 @@
   (int max-attempts))
 
 (def-builder-translation Retrier #{::backoff-rate ::error-equals ::interval-seconds ::max-attempts})
+
+(def-builder-translation Iterator #{::start-at ::comment ::states})
 
 (def-builder-translation NextStateTransition #{::next-state-name ::terminal?} ::terminal?)
 
@@ -335,11 +343,38 @@
   (doseq [retrier retriers]
     (.retrier builder (map->Retrier$Builder retrier))))
 
+(defmethod bd/builder-override [MapState ::transition] [_ ^MapState$Builder builder transition]
+  (.transition builder (map->Transition transition)))
+
+(defmethod bd/builder-override [MapState ::catchers] [_ ^MapState$Builder builder catchers]
+  (doseq [catcher catchers]
+    (.catcher builder (map->Catcher$Builder catcher))))
+
+(defmethod bd/builder-override [MapState ::retriers] [_ ^MapState$Builder builder retriers]
+  (doseq [retrier retriers]
+    (.retrier builder (map->Retrier$Builder retrier))))
+
+(declare states->bean-map)
+
+(defmethod bd/builder-override [Iterator ::states] [_ ^Iterator$Builder builder states]
+  (doseq [[name state] (states->bean-map states)]
+    (.state builder name state)))
+
+(defmethod bd/builder-override [MapState ::iterator] [_ ^MapState$Builder builder iterators]
+  (doseq [iterator iterators]
+    (.iterator builder (map->Iterator$Builder iterator))))
+
 (defmethod bd/->bean-val ::timeout-seconds [_ timeout-seconds]
   (int timeout-seconds))
 
 (defmethod bd/->bean-val ::heartbeat-seconds [_ heartbeat-seconds]
   (int heartbeat-seconds))
+
+(def-builder-translation MapState
+  #{::catchers ::comment ::heartbeat-seconds
+    [::input-path String] [::parameters String]
+    [::result-selector String] [::result-path String] [::output-path String]
+    ::resource ::retriers ::timeout-seconds ::transition ::iterator})
 
 (def-builder-translation TaskState
                          #{::catchers ::comment ::heartbeat-seconds
@@ -396,7 +431,8 @@
    ::pass     map->PassState$Builder
    ::succeed  map->SucceedState$Builder
    ::task     map->TaskState$Builder
-   ::wait     map->WaitState$Builder})
+   ::wait     map->WaitState$Builder
+   ::map      map->MapState$Builder})
 
 (def bean-class->state-kw
   {ChoiceState   ::choice
@@ -405,7 +441,8 @@
    PassState     ::pass
    SucceedState  ::succeed
    TaskState     ::task
-   WaitState     ::wait})
+   WaitState     ::wait
+   MapState      ::map})
 
 (defmethod bd/->map-val ::states [_ states]
   (into {}
@@ -535,6 +572,7 @@
    "PassStateEntered"       ::state-entered-event-details
    "SucceedStateEntered"    ::state-entered-event-details
    "TaskStateEntered"       ::state-entered-event-details
+   "MapStateEntered"       ::state-entered-event-details
    "WaitStateEntered"       ::state-entered-event-details
    "ExecutionStarted"       ::execution-started-event-details,
    "ActivityTimedOut"       ::activity-timed-out-event-details,
@@ -545,6 +583,7 @@
    "PassStateExited"        ::state-exited-event-details
    "SucceedStateExited"     ::state-exited-event-details
    "TaskStateExited"        ::state-exited-event-details
+   "MapStateExited"        ::state-exited-event-details
    "WaitStateExited"        ::state-exited-event-details
    "ExecutionFailed"        ::execution-failed-event-details,
    "ActivityFailed"         ::activity-failed-event-details,
