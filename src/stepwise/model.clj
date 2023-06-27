@@ -360,9 +360,8 @@
   (doseq [[name state] (states->bean-map states)]
     (.state builder name state)))
 
-(defmethod bd/builder-override [MapState ::iterator] [_ ^MapState$Builder builder iterators]
-  (doseq [iterator iterators]
-    (.iterator builder (map->Iterator$Builder iterator))))
+(defmethod bd/builder-override [MapState ::iterator] [_ ^MapState$Builder builder iterator]
+  (.iterator builder (map->Iterator$Builder iterator)))
 
 (defmethod bd/->bean-val ::timeout-seconds [_ timeout-seconds]
   (int timeout-seconds))
