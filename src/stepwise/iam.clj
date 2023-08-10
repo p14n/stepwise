@@ -37,7 +37,7 @@
                  "Action"   ["events:PutTargets"
                              "events:PutRule"
                              "events:DescribeRule"]
-                 "Resource" "arn:aws:events:us-west-2:*:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule"}]})
+                 "Resource" "arn:aws:events:*:*:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule"}]})
 
 (set! *warn-on-reflection* true)
 
